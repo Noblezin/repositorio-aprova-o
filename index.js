@@ -5,12 +5,17 @@ const port = 3000
 var path = require ('path')
 const app = express()
 
-
 var login = "admin"
 var password= "123456"
 
-app.use(session({secret:'slahalgumacoisasecreta'}))
-app.use(bodyParser.urlencoded({extended:true}))
+app.use(session({
+    secret:'slahalgumacoisasecreta',
+    saveUninitialized: true,
+    cookie: { maxAge: (1000 * 60 * 60 * 24) }, //1000ms * 60s * 60m * 24h = um dia
+    resave: false
+}))
+
+app.use(express.urlencoded({extended:true}))
 
 app.engine('html', require('ejs').renderFile)
 app.set('view engine', 'html')
@@ -43,6 +48,6 @@ app.get('/',(req,res)=>{
 
 
 app.listen(port,()=>{
-    console.log('servidor rodando')
+    console.log('servidor rodando http://localhost:' + port)
 })
 
