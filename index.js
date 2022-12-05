@@ -1,5 +1,6 @@
 const express = require('express')
 const session = require('express-session')
+const expressLayouts = require('express-ejs-layouts')
 
 const port = 3000
 var path = require ('path')
@@ -15,13 +16,12 @@ app.use(session({
     resave: false
 }))
 
+app.use(expressLayouts)
 app.use(express.urlencoded({extended:true}))
-
-app.engine('html', require('ejs').renderFile)
-app.set('view engine', 'html')
-app.use('/public', express.static(path.join(__dirname, 'public')))
 app.set('views', path.join(__dirname, '/views'))
-
+app.set('view engine', 'ejs')
+app.set('layout', 'layout/layoutPadrao')
+app.use('/public', express.static(path.join(__dirname, 'public')))
 
 app.post('/',(req,res)=>{
 
