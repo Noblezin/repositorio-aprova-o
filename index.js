@@ -32,17 +32,17 @@ app.post('/',(req,res)=>{
     
     }else{
         
-        res.render('index')
+        res.render('index', {titulo: "Página Inicial"} )
 
     }
 })
 
 app.get('/',(req,res)=>{
     if(req.session.login){
-        res.render('logado')
+        res.render('logado', {titulo: "Logado"})
         console.log ('O meu usuário logado é: ' + req.session.login)
     }else{
-        res.render('index')
+        res.render('index', {titulo: "Página Inicial"})
     }
 })
 
