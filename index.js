@@ -46,6 +46,15 @@ app.get('/',(req,res)=>{
     }
 })
 
+app.get('/neto',(req,res)=>{
+    res.render('usuarios/neto', {titulo: "Página do Neto"})
+})
+
+app.get('/usuario/:usr',(req,res)=>{
+    let usr = req.params.usr
+    console.log(req)
+    res.render('usuarios/usuarios', {titulo: `Página do ${usr}`, usuario: usr})
+})
 
 app.listen(port,()=>{
     console.log('servidor rodando http://localhost:' + port)

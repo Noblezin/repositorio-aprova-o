@@ -1,0 +1,10 @@
+<h2>Bem vindo a página do <%= usuario %></h2>
+<p id="qlqrCoisa"></p>
+<button class="btn btn-primary" onclick="escreveAlgo()">Escreve algo</button>
+
+<script>
+    function escreveAlgo() {
+        let texto = document.getElementById("qlqrCoisa");
+        texto.innerHTML = "Escrevi algo nesse paragrafo";
+    }
+</script>
