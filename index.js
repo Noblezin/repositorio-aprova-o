@@ -1,6 +1,7 @@
 const express = require('express')
 const session = require('express-session')
 const expressLayouts = require('express-ejs-layouts')
+const db = require('./models/db.js')
 
 const port = 3000
 var path = require ('path')
