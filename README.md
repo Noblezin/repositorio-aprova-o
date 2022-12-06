@@ -5,5 +5,6 @@ Para uso devese baixar o repositório na maquina e rodar o comando
 `npm i`
 
 
+### npm install sequelize sqlite3
 
-
+### npm install --save mysql2
