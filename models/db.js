@@ -5,4 +5,6 @@ const sequelize = new Sequelize ("login", "root@localhost", "", {
     dialect: 'mysql'
 })
 
+
+
 module.exports = sequelize
