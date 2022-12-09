@@ -25,7 +25,7 @@ app.set('layout', 'layout/layoutPadrao')
 app.use('/public', express.static(path.join(__dirname, 'public')))
 
 app.post('/',(req,res)=>{
-
+    
     if(req.body.password == password && req.body.login){
         //Logado com sucesso!
         req.session.login = login
