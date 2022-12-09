@@ -2,6 +2,8 @@ const express = require('express')
 const session = require('express-session')
 const expressLayouts = require('express-ejs-layouts')
 const db = require('./models/db.js')
+const Usuario = require('./models/Usuario.js')
+//bycript
 
 const port = 3000
 var path = require ('path')
@@ -25,7 +27,23 @@ app.set('layout', 'layout/layoutPadrao')
 app.use('/public', express.static(path.join(__dirname, 'public')))
 
 app.post('/',(req,res)=>{
-    
+    console.log(req.body)
+    let nome = req.body.login
+    let senha = req.body.password
+    //procurar no banco de dados se o usuário existe
+    let usr = Usuario.findOne({where: {nome: nome}})
+    if (usr) {
+        //se existir
+        
+        let senhaCriptografada = usr.senha
+        //TODO: compara a senha passada com a criptografada do banco
+        //TODO: se passar sucesso
+        //TODO: se não passar erro
+
+
+    } else {
+        //mostrar que o usuario não esta cadastrado
+    }
     if(req.body.password == password && req.body.login){
         //Logado com sucesso!
         req.session.login = login
@@ -57,7 +75,22 @@ app.get('/usuario/:usr',(req,res)=>{
     res.render('usuarios/usuarios', {titulo: `Página do ${usr}`, usuario: usr})
 })
 
+app.post('/cadastra-usr', cadastraUser)
+
 app.listen(port,()=>{
     console.log('servidor rodando http://localhost:' + port)
 })
 
+async function cadastraUser(req, res) {
+    let usuario = req.body.login
+    let senha = req.body.password
+    //TODO: criptografar a senha
+    let user;
+    try {
+        user = await Usuario.create({nome: usuario, senha: senha})
+        res.render('usuarios/cadastrado', {titulo: "Usuário Cadastrado", usr: usuario})
+    } catch (err) {
+        console.log(err)
+        res.render('usuarios/erro', {titulo: "Erro ao cadastrar", usr: usuario})
+    }
+}
