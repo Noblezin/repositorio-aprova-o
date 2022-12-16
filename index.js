@@ -18,56 +18,31 @@ app.use(session({
 }))
 
 app.use(expressLayouts)
-app.use(express.urlencoded({extended:true}))
 app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs')
 app.set('layout', 'layout/layoutPadrao')
 app.use('/public', express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
+app.use((req, res, next) => {
+    res.locals.usuarioLogado = req.session.login
+    next()
+}) 
 
-app.post('/',(req,res)=>{
-    console.log(req.body)
-    let nome = req.body.login
-    let senha = req.body.password
-    //procurar no banco de dados se o usuário existe
-    let usr = Usuario.findOne({where: {nome: nome}})
-    if (usr) {
-        //se existir
-        
-        let senhaCriptografada = usr.senha
-        //TODO: compara a senha passada com a criptografada do banco
-        //TODO: se passar sucesso
-        //TODO: se não passar erro
-
-
-    } else {
-        //mostrar que o usuario não esta cadastrado
-    }
-    if(req.body.password == password && req.body.login){
-        //Logado com sucesso!
-        req.session.login = login
-        res.redirect('/')
-    
+app.get('/',(req,res)=>{
+    if(req.session.login) {
+        res.render('logado', {titulo: "Logado"})
+        //console.log ('O meu usuário logado é: ' + req.session.login)
     }else{
-        
-        res.render('index', {titulo: "Página Inicial"} )
-
+        res.render('login', {titulo: "Página Inicial"})
     }
 })
 
-app.get('/views/cadastrando.ejs', (req, res)=>{
+
+app.get('/cadastrando', (req, res)=>{
     res.render('cadastrando', {titulo: "Cadastro"})
 })
 
-app.get('/',(req,res)=>{
-    if(req.session.login){
-        res.render('logado', {titulo: "Logado"})
-        console.log ('O meu usuário logado é: ' + req.session.login)
-    }else{
-        res.render('index', {titulo: "Página Inicial"})
-    }
-})
 
 app.get('/neto',(req,res)=>{
     res.render('usuarios/neto', {titulo: "Página do Neto"})
@@ -82,36 +57,55 @@ app.get('/usuario/:usr',(req,res)=>{
 
 app.post('/register', async (req, res) => {
     try{        
-        let {usuario, senha} = req.body;
-        const hash = await bcrypt.hash(password, 10)
-        await db('login').insert({usuario: usuario, hash: hash})
-        res.status(200).json('Tudo certo!')
+        const login = req.body.login;
+        const password = req.body.password;
+        const passwordReply = req.body.passwordReply;
+        if (password === passwordReply) {
+            const hash = await bcrypt.hash(password, 10)
+            await Usuario.create({nome: login, senha: hash})
+            //sucesso no cadastro
+            res.redirect("/");
+        } else {
+            apresentaErro(res, 'Senhas não conferem')
+            //res.status(200).send('Senhas não conferem')
+        }
+        
     }catch(e){
-        console.log(e)
-        res.status(500).send('Ocorreu um erro...')
+        //console.log(e)
+        apresentaErro(res, 'Senhas não conferem' + e)
     }
 
+})
+
+app.get('/logout', (req, res) =>{
+    req.session.login = ''
+    res.redirect('/')
 })
 
 app.post('/login', async (req, res) =>{
     try{
-        let {usuario, senha} = req.body
-        const user = await db('login').first('*').where({usuario: usuario})
+        let {login, password} = req.body
+        const user = await Usuario.findOne({where: {nome: login}})
         if(user){
-            const validPass = await bcrypt.compare(senha, user.hash)
+            const validPass = await bcrypt.compare(password, user.senha)
             if(validPass){
-                res.status(200).json('Usuario e senha Valido!')
+                req.session.login = login
+                res.redirect('/')
             } else {
-                res.json('login inexistente!')
+                apresentaErro(res, 'Usuário/senha inválido')
             }
         }else{
-            res.status(404).json('Usuario ou Senha invalidos!')
+            apresentaErro(res, 'Usuário/senha inválido')
         }
     } catch(e){
-        console.log(e)
-        res.status(500).send('Codigo quebrado!')
+        //console.log(e)
+        apresentaErro(res, 'Codigo quebrado!' + e)
     }
 })
+
+function apresentaErro(res, mensagem) {
+    res.render('errors/errGenerico', {titulo: 'Erro', mensagemErro: mensagem})
+}
 
 
 app.listen(port,()=>{
