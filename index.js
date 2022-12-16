@@ -60,6 +60,9 @@ app.post('/register', async (req, res) => {
         const login = req.body.login;
         const password = req.body.password;
         const passwordReply = req.body.passwordReply;
+
+        //fazer validação se já existe o usuário no banco de dados
+
         if (password === passwordReply) {
             const hash = await bcrypt.hash(password, 10)
             await Usuario.create({nome: login, senha: hash})
