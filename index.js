@@ -3,14 +3,12 @@ const session = require('express-session')
 const expressLayouts = require('express-ejs-layouts')
 const db = require('./models/db.js')
 const Usuario = require('./models/Usuario.js')
-//bycript
-
+const bcrypt = require('bcrypt')
 const port = 3000
 var path = require ('path')
 const app = express()
+const bodyParser = require('body-parser')
 
-var login = "admin"
-var password= "123456"
 
 app.use(session({
     secret:'slahalgumacoisasecreta',
@@ -25,6 +23,8 @@ app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs')
 app.set('layout', 'layout/layoutPadrao')
 app.use('/public', express.static(path.join(__dirname, 'public')))
+app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.json())
 
 app.post('/',(req,res)=>{
     console.log(req.body)
@@ -56,6 +56,10 @@ app.post('/',(req,res)=>{
     }
 })
 
+app.get('/views/cadastrando.ejs', (req, res)=>{
+    res.render('cadastrando', {titulo: "Cadastro"})
+})
+
 app.get('/',(req,res)=>{
     if(req.session.login){
         res.render('logado', {titulo: "Logado"})
@@ -75,22 +79,41 @@ app.get('/usuario/:usr',(req,res)=>{
     res.render('usuarios/usuarios', {titulo: `Página do ${usr}`, usuario: usr})
 })
 
-app.post('/cadastra-usr', cadastraUser)
+
+app.post('/register', async (req, res) => {
+    try{        
+        let {usuario, senha} = req.body;
+        const hash = await bcrypt.hash(password, 10)
+        await db('login').insert({usuario: usuario, hash: hash})
+        res.status(200).json('Tudo certo!')
+    }catch(e){
+        console.log(e)
+        res.status(500).send('Ocorreu um erro...')
+    }
+
+})
+
+app.post('/login', async (req, res) =>{
+    try{
+        let {usuario, senha} = req.body
+        const user = await db('login').first('*').where({usuario: usuario})
+        if(user){
+            const validPass = await bcrypt.compare(senha, user.hash)
+            if(validPass){
+                res.status(200).json('Usuario e senha Valido!')
+            } else {
+                res.json('login inexistente!')
+            }
+        }else{
+            res.status(404).json('Usuario ou Senha invalidos!')
+        }
+    } catch(e){
+        console.log(e)
+        res.status(500).send('Codigo quebrado!')
+    }
+})
+
 
 app.listen(port,()=>{
     console.log('servidor rodando http://localhost:' + port)
 })
-
-async function cadastraUser(req, res) {
-    let usuario = req.body.login
-    let senha = req.body.password
-    //TODO: criptografar a senha
-    let user;
-    try {
-        user = await Usuario.create({nome: usuario, senha: senha})
-        res.render('usuarios/cadastrado', {titulo: "Usuário Cadastrado", usr: usuario})
-    } catch (err) {
-        console.log(err)
-        res.render('usuarios/erro', {titulo: "Erro ao cadastrar", usr: usuario})
-    }
-}
